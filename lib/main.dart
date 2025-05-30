@@ -1,184 +1,189 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'
 
 void main() {
-  runApp(TemperatureConverterApp());
+  runApp(const TempConvertApp());
 }
 
-class TemperatureConverterApp extends StatelessWidget {
+class TempConvertApp extends StatelessWidget {
+  const TempConvertApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Temperature Converter',
-      theme: ThemeData(primarySwatch: const Color.fromARGB(255, 2, 73, 131)),
-      home: TemperatureConverterScreen(),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(color: Colors.black87),
+        ),
+      ),
+      home: const TempConvertHome(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-enum ConversionType { fToC, cToF }
+class TempConvertHome extends StatefulWidget {
+  const TempConvertHome({Key? key}) : super(key: key);
 
-class TemperatureConverterScreen extends StatefulWidget {
   @override
-  _TemperatureConverterScreenState createState() => _TemperatureConverterScreenState();
+  _TempConvertHomeState createState() => _TempConvertHomeState();
 }
 
-class _TemperatureConverterScreenState extends State<TemperatureConverterScreen> {
-  final TextEditingController _inputController = TextEditingController();
-  double? _convertedValue;
-  ConversionType _selectedConversion = ConversionType.fToC;
-  List<String> _conversionHistory = [];
+class _TempConvertHomeState extends State<TempConvertHome> {
+  String _selectedConversion = 'Fahrenheit to Celsius';
+  String? _convertedTemperature;
+  final List<String> _history = [];
+  final TextEditingController _controller = TextEditingController();
 
   void _convertTemperature() {
-    final input = double.tryParse(_inputController.text);
-    if (input == null) return;
+    double? inputTemp = double.tryParse(_controller.text);
+    if (inputTemp == null) return;
 
-    double result;
-    String historyEntry;
-
-    if (_selectedConversion == ConversionType.fToC) {
-      result = (input - 32) * 5 / 9;
-      historyEntry = "F to C: ${input.toStringAsFixed(1)} ➔ ${result.toStringAsFixed(2)}";
+    double convertedTemp;
+    String result;
+    if (_selectedConversion == 'Fahrenheit to Celsius') {
+      convertedTemp = (inputTemp - 32) * 5 / 9;
+      result = '${inputTemp.toStringAsFixed(1)}°F = ${convertedTemp.toStringAsFixed(2)}°C';
     } else {
-      result = input * 9 / 5 + 32;
-      historyEntry = "C to F: ${input.toStringAsFixed(1)} ➔ ${result.toStringAsFixed(2)}";
+      convertedTemp = inputTemp * 9 / 5 + 32;
+      result = '${inputTemp.toStringAsFixed(1)}°C = ${convertedTemp.toStringAsFixed(2)}°F';
     }
 
     setState(() {
-      _convertedValue = double.parse(result.toStringAsFixed(2));
-      _conversionHistory.insert(0, historyEntry);
+      _convertedTemperature = convertedTemp.toStringAsFixed(2);
+      _history.add(result);
     });
-  }
-
-  Widget _buildConverterUI(BoxConstraints constraints) {
-    bool isLandscape = constraints.maxWidth > constraints.maxHeight;
-
-    final inputField = Expanded(
-      child: TextField(
-        controller: _inputController,
-        keyboardType: TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-        decoration: InputDecoration(
-          labelText: 'Enter Temperature',
-          border: OutlineInputBorder(),
-        ),
-      ),
-    );
-
-    final outputField = Expanded(
-      child: Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(vertical: 12.0),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey),
-          borderRadius: BorderRadius.circular(4.0),
-          color: Colors.grey.shade200,
-        ),
-        child: Text(
-          _convertedValue?.toStringAsFixed(2) ?? '',
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
-    );
-
-    final historyList = Expanded(
-      child: ListView.builder(
-        itemCount: _conversionHistory.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(_conversionHistory[index]),
-          );
-        },
-      ),
-    );
-
-    final convertButton = ElevatedButton(
-      onPressed: _convertTemperature,
-      child: Text('CONVERT'),
-    );
-
-    final radioGroup = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Conversion:"),
-        RadioListTile<ConversionType>(
-          title: Text('Fahrenheit to Celsius'),
-          value: ConversionType.fToC,
-          groupValue: _selectedConversion,
-          onChanged: (value) {
-            setState(() => _selectedConversion = value!);
-          },
-        ),
-        RadioListTile<ConversionType>(
-          title: Text('Celsius to Fahrenheit'),
-          value: ConversionType.cToF,
-          groupValue: _selectedConversion,
-          onChanged: (value) {
-            setState(() => _selectedConversion = value!);
-          },
-        ),
-      ],
-    );
-
-    final horizontalFields = Row(
-      children: [
-        inputField,
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Text('='),
-        ),
-        outputField,
-      ],
-    );
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: isLandscape
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Converter', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 16),
-                      radioGroup,
-                      SizedBox(height: 16),
-                      horizontalFields,
-                      SizedBox(height: 16),
-                      convertButton,
-                    ],
-                  ),
-                ),
-                SizedBox(width: 16),
-                Flexible(child: historyList),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Converter', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                radioGroup,
-                SizedBox(height: 16),
-                horizontalFields,
-                SizedBox(height: 16),
-                convertButton,
-                SizedBox(height: 16),
-                Text('History:', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
-                historyList,
-              ],
-            ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) => _buildConverterUI(constraints),
+      appBar: AppBar(
+        title: const Text('Temperature Converter', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.indigo,
+        centerTitle: true,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.thermostat, size: 100, color: Colors.indigo),
+                const SizedBox(height: 20),
+                const Text(
+                  'Select Conversion',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.indigo),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: RadioListTile<String>(
+                          title: const Text('F to C'),
+                          value: 'Fahrenheit to Celsius',
+                          groupValue: _selectedConversion,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedConversion = value!;
+                            });
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: RadioListTile<String>(
+                          title: const Text('C to F'),
+                          value: 'Celsius to Fahrenheit',
+                          groupValue: _selectedConversion,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedConversion = value!;
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'C stands for Celsius and F stands for Fahrenheit',
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    labelText: 'Enter Temperature',
+                    labelStyle: const TextStyle(color: Colors.indigo),
+                    border: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.indigo),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.indigo),
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    prefixIcon: const Icon(Icons.thermostat, color: Colors.indigo),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: _convertTemperature,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16),
+                  ),
+                  icon: const Icon(Icons.sync_alt),
+                  label: const Text('Convert'),
+                ), if (_convertedTemperature != null) ...[
+                  const SizedBox(height: 20),
+                  Text(
+                    'Converted Temperature: $_convertedTemperature',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                const Text(
+                  'Conversion History',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.indigo),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  height: 150, // Fixed height for the history list
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.indigo),
+                  ),
+                  child: ListView.builder(
+                    itemCount: _history.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: const Icon(Icons.history, color: Colors.indigo),
+                        title: Text(
+                          _history[index],
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
