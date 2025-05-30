@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'
 
 void main() {
   runApp(TemperatureConverterApp());
@@ -10,7 +10,7 @@ class TemperatureConverterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Temperature Converter',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: const Color.fromARGB(255, 2, 73, 131)),
       home: TemperatureConverterScreen(),
     );
   }
